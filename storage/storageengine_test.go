@@ -52,12 +52,12 @@ func TestStorageInsertMultiple(t *testing.T) {
 		},
 		nil,
 	)
-	oldCount := TStorage.Count()
+	oldCount, _ := TStorage.Count()
 	TStorage.Insert(event1)
 	TStorage.Insert(event2)
 	TStorage.Insert(event3)
 
-	if TStorage.Count() != oldCount+3 {
+	if c, _ := TStorage.Count(); c != oldCount+3 {
 		t.Error("Count does not correctly reflect new Inserts.")
 	}
 }

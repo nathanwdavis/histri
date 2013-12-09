@@ -7,7 +7,7 @@ import (
 
 // Interface that defines the ability to insert a new Event object
 type Inserter interface {
-	Insert(*histri.Event)
+	Insert(*histri.Event) error
 }
 
 // Interface that defines the ability to query for Events
@@ -18,7 +18,7 @@ type SimpleQuerier interface {
 }
 
 type Counter interface {
-	Count() int64
+	Count() (int64, error)
 }
 
 // Interface that defines a storage engine for Events
@@ -34,13 +34,14 @@ type InMemStorage struct {
 	isSorted bool
 }
 
-func (self *InMemStorage) Insert(event *histri.Event) {
+func (self *InMemStorage) Insert(event *histri.Event) error {
 	event.Id = string(len(self.events) + 1)
 	self.events = append(self.events, *event)
+	return nil
 }
 
-func (self *InMemStorage) Count() int64 {
-	return int64(len(self.events))
+func (self *InMemStorage) Count() (int64, error) {
+	return int64(len(self.events)), nil
 }
 
 // Returns an implementation of Storage (currently only supports InMemStorage)
