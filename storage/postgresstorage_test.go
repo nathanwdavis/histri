@@ -1,6 +1,7 @@
 package storage
 
 import (
+	//"fmt"
 	"github.com/nathanwdavis/histri"
 	"testing"
 )
@@ -101,5 +102,28 @@ func TestPostgresStorageInsertWithComplexJson(t *testing.T) {
 	err := db.Insert(event)
 	if err != nil {
 		t.Errorf("Could not Insert with complex json. Error: %q", err.Error())
+	}
+}
+
+func TestPostgresStorageInsertWithTimeStr(t *testing.T) {
+	db, _ := NewPostgresStorage()
+	timeString := "Fri, 06 Dec 2013 01:00:00 CST"
+	event, err := histri.NewEventWithTimeStr(
+		timeString,
+		"earthquake",
+		"abc123",
+		map[string]interface{}{
+			"a": 1,
+			"b": "b",
+		},
+	)
+	//fmt.Println(event.TimeUtc)
+	if err != nil {
+		t.Error("Could not create Event with TimeStr")
+	}
+	err = db.Insert(event)
+	if err != nil {
+		t.Errorf("Could not Insert with time from string. Error: %q",
+			err.Error())
 	}
 }

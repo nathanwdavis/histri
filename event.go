@@ -1,6 +1,7 @@
 package histri
 
 import (
+	//"fmt"
 	"time"
 )
 
@@ -36,16 +37,21 @@ func NewEventWithTimeStr(timeUtcStr, eventType, extRef string,
 	data map[string]interface{}) (*Event, error) {
 
 	t, retErr := time.Parse(time.RFC3339Nano, timeUtcStr)
+	//fmt.Println(t)
 	if retErr != nil {
-		if t, err := time.Parse(time.RFC1123, timeUtcStr); err == nil {
-			t = t
-		} else if t, err := time.Parse(time.UnixDate, timeUtcStr); err == nil {
-			t = t
+		if tym, err := time.Parse(time.RFC1123, timeUtcStr); err == nil {
+			t = tym
+			//fmt.Println(t)
+		} else if tym, err := time.Parse(time.UnixDate, timeUtcStr); err == nil {
+			t = tym
 		} else {
 			return nil, retErr
 		}
 	}
+	//fmt.Println(t)
 	t = t.UTC()
+	//fmt.Println(t)
 	event := NewEvent(eventType, extRef, data, &t)
+	//fmt.Println(event.TimeUtc)
 	return event, nil
 }

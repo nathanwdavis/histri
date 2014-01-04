@@ -1,6 +1,7 @@
 package histri
 
 import (
+	//"fmt"
 	"testing"
 	"time"
 )
@@ -29,7 +30,7 @@ func TestNewEventWithTimeStr(t *testing.T) {
 
 //TODO: this is failing. I need to convert non-UTC times to UTC
 func TestTimeZoneOffsetTimeString(t *testing.T) {
-	timeString := "Fri, 06 Dec 2013 01:00:00 EST"
+	timeString := "Fri, 06 Dec 2013 01:00:00 CST"
 	event, err := NewEventWithTimeStr(
 		timeString,
 		"earthquake",
@@ -44,7 +45,7 @@ func TestTimeZoneOffsetTimeString(t *testing.T) {
 		t.Errorf("Time string parsing failed with error: %q", err.Error())
 	}
 	hour_utc := event.TimeUtc.Hour()
-	expect_hour := 5
+	expect_hour := 7
 	if hour_utc != expect_hour {
 		t.Errorf("Time not corrected to UTC. %d != %d", hour_utc, expect_hour)
 	}
