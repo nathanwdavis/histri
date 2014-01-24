@@ -3,8 +3,10 @@ package storage
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	_ "github.com/lib/pq"
 	"github.com/nathanwdavis/histri"
+	"strconv"
 )
 
 type PostgresStorage struct {
@@ -25,7 +27,9 @@ func (self *PostgresStorage) Insert(ev *histri.Event) error {
 	if err := row.Scan(&newId); err != nil {
 		return err
 	}
-	ev.Id = string(newId)
+	fmt.Println(newId)
+	ev.Id = strconv.Itoa(newId)
+	fmt.Println(ev.Id)
 	return nil
 }
 
@@ -38,6 +42,20 @@ func (self *PostgresStorage) Count() (int64, error) {
 	return count, nil
 }
 
+func (self *PostgresStorage) ById(id string) (*histri.Event, error) {
+	intId, err := idStrToInt(id)
+	if err != nil {
+		return nil, err
+	}
+	instance := new(histri.Event)
+	result := self.conn.QueryRow(`select * from histri.events
+								  where id = $1`, intId)
+	if err := result.Scan(&instance); err != nil {
+		return nil, err
+	}
+	return instance, nil
+}
+
 func NewPostgresStorage() (Storage, error) {
 	db, err := sql.Open("postgres",
 		"postgres://histri:postgres@127.0.0.1/event?sslmode=disable")
@@ -47,4 +65,12 @@ func NewPostgresStorage() (Storage, error) {
 	return Storage(&PostgresStorage{
 		db,
 	}), nil
+}
+
+func idStrToInt(id string) (int64, error) {
+	intId, err := strconv.ParseInt(id, 0, 64)
+	if err != nil {
+		return 0, err
+	}
+	return intId, nil
 }

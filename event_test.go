@@ -28,7 +28,7 @@ func TestNewEventWithTimeStr(t *testing.T) {
 	}
 }
 
-//TODO: this is failing. I need to convert non-UTC times to UTC
+//TODO: make this immune to daylight savings time changes
 func TestTimeZoneOffsetTimeString(t *testing.T) {
 	timeString := "Fri, 06 Dec 2013 01:00:00 CST"
 	event, err := NewEventWithTimeStr(

@@ -127,3 +127,25 @@ func TestPostgresStorageInsertWithTimeStr(t *testing.T) {
 			err.Error())
 	}
 }
+
+func TestPostgresStorageGetById(t *testing.T) {
+	db, _ := NewPostgresStorage()
+	event := histri.NewEvent(
+		"type",
+		"abc123",
+		map[string]interface{}{
+			"a": 1,
+			"b": 2,
+		},
+		nil,
+	)
+	db.Insert(event)
+	db, _ = NewPostgresStorage()
+	eventRetrieved, err := db.ById(event.Id)
+	if err != nil {
+		t.Errorf("Could not get ById. Error: %q", err)
+	}
+	if eventRetrieved.EventType != "type" {
+		t.Error("Event was different after retrieved from DB.")
+	}
+}

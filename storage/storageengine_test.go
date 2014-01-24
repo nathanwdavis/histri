@@ -5,7 +5,10 @@ import (
 	"testing"
 )
 
-var TStorage = NewStorage("inmem")
+var (
+	tStorage, _ = NewStorage("inmem")
+	TStorage    = *tStorage
+)
 
 func TestStorageInsertSetsNewId(t *testing.T) {
 	event := histri.NewEvent(

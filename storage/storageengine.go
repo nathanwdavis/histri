@@ -1,8 +1,10 @@
 package storage
 
 import (
+	"errors"
 	"github.com/nathanwdavis/histri"
-	"time"
+	"strconv"
+	//"time"
 )
 
 // Interface that defines the ability to insert a new Event object
@@ -12,9 +14,9 @@ type Inserter interface {
 
 // Interface that defines the ability to query for Events
 type SimpleQuerier interface {
-	ById(id string) *histri.Event
-	ByTimeRange(start, end time.Time) []histri.Event
-	ByExtRef(extRef string) []histri.Event
+	ById(id string) (*histri.Event, error)
+	//ByTimeRange(start, end time.Time) []histri.Event
+	//ByExtRef(extRef string) []histri.Event
 }
 
 type Counter interface {
@@ -24,7 +26,7 @@ type Counter interface {
 // Interface that defines a storage engine for Events
 type Storage interface {
 	Inserter
-	//SimpleQuerier
+	SimpleQuerier
 	Counter
 }
 
@@ -35,7 +37,7 @@ type InMemStorage struct {
 }
 
 func (self *InMemStorage) Insert(event *histri.Event) error {
-	event.Id = string(len(self.events) + 1)
+	event.Id = string(len(self.events))
 	self.events = append(self.events, *event)
 	return nil
 }
@@ -44,8 +46,28 @@ func (self *InMemStorage) Count() (int64, error) {
 	return int64(len(self.events)), nil
 }
 
+func (self *InMemStorage) ById(id string) (*histri.Event, error) {
+	intId, err := strconv.ParseInt(id, 0, 64)
+	if err != nil {
+		return nil, err
+	}
+	return &self.events[intId-1], nil
+}
+
 // Returns an implementation of Storage (currently only supports InMemStorage)
-func NewStorage(typ string) Storage {
-	inst := Storage(new(InMemStorage))
-	return inst
+func NewStorage(typ string) (*Storage, error) {
+	switch typ {
+	case "", "postgres":
+		postgresStore, err := NewPostgresStorage()
+		if err != nil {
+			return nil, err
+		}
+		inst := Storage(postgresStore)
+		return &inst, nil
+	case "inmem":
+		inst := Storage(new(InMemStorage))
+		return &inst, nil
+	default:
+		return nil, errors.New("Invalid storage type provided.")
+	}
 }
