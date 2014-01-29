@@ -3,7 +3,7 @@ package storage
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	//"fmt"
 	_ "github.com/lib/pq"
 	"github.com/nathanwdavis/histri"
 	"strconv"
@@ -27,9 +27,9 @@ func (self *PostgresStorage) Insert(ev *histri.Event) error {
 	if err := row.Scan(&newId); err != nil {
 		return err
 	}
-	fmt.Println(newId)
+	//fmt.Println(newId)
 	ev.Id = strconv.Itoa(newId)
-	fmt.Println(ev.Id)
+	//fmt.Println(ev.Id)
 	return nil
 }
 
@@ -50,7 +50,7 @@ func (self *PostgresStorage) ById(id string) (*histri.Event, error) {
 	instance := new(histri.Event)
 	result := self.conn.QueryRow(`select * from histri.events
 								  where id = $1`, intId)
-	if err := result.Scan(&instance); err != nil {
+	if err = rowToEvent(result, instance); err != nil {
 		return nil, err
 	}
 	return instance, nil
@@ -73,4 +73,28 @@ func idStrToInt(id string) (int64, error) {
 		return 0, err
 	}
 	return intId, nil
+}
+
+func rowToEvent(row rowScanner, event *histri.Event) error {
+	var (
+		intId     int64
+		dataBytes []byte
+	)
+	err := row.Scan(&intId,
+		&event.TimeUtc,
+		&event.EventType,
+		&event.ExtRef,
+		&dataBytes)
+	if err != nil {
+		return err
+	}
+	if err = json.Unmarshal(dataBytes, &event.Data); err != nil {
+		return err
+	}
+	event.Id = strconv.Itoa(int(intId))
+	return nil
+}
+
+type rowScanner interface {
+	Scan(dest ...interface{}) error
 }

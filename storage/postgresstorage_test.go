@@ -146,6 +146,11 @@ func TestPostgresStorageGetById(t *testing.T) {
 		t.Errorf("Could not get ById. Error: %q", err)
 	}
 	if eventRetrieved.EventType != "type" {
-		t.Error("Event was different after retrieved from DB.")
+		t.Error("EventType was different after retrieved from DB.")
+	}
+	if eventRetrieved.TimeUtc.Second() != event.TimeUtc.Second() {
+		t.Errorf("TimeUtc was different after retrieved from DB. %q != %q",
+			eventRetrieved.TimeUtc,
+			event.TimeUtc)
 	}
 }
