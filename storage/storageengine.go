@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/nathanwdavis/histri"
 	"strconv"
-	//"time"
+	"time"
 )
 
 // Interface that defines the ability to insert a new Event object
@@ -15,8 +15,8 @@ type Inserter interface {
 // Interface that defines the ability to query for Events
 type SimpleQuerier interface {
 	ById(id string) (*histri.Event, error)
-	//ByTimeRange(start, end time.Time) []histri.Event
-	//ByExtRef(extRef string) []histri.Event
+	ByTimeRange(start, end time.Time) ([]histri.Event, error)
+	//ByExtRef(extRef string) ([]histri.Event, error)
 }
 
 type Counter interface {
@@ -52,6 +52,16 @@ func (self *InMemStorage) ById(id string) (*histri.Event, error) {
 		return nil, err
 	}
 	return &self.events[intId-1], nil
+}
+
+func (self *InMemStorage) ByTimeRange(start, end time.Time) ([]histri.Event, error) {
+	var results []histri.Event
+	for _, ev := range self.events {
+		if ev.TimeUtc.After(start) && ev.TimeUtc.Before(end) {
+			results = append(results, ev)
+		}
+	}
+	return results, nil
 }
 
 // Returns an implementation of Storage (currently only supports InMemStorage)

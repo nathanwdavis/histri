@@ -36,22 +36,29 @@ func NewEvent(eventType, extRef string,
 func NewEventWithTimeStr(timeUtcStr, eventType, extRef string,
 	data map[string]interface{}) (*Event, error) {
 
-	t, retErr := time.Parse(time.RFC3339Nano, timeUtcStr)
-	//fmt.Println(t)
-	if retErr != nil {
-		if tym, err := time.Parse(time.RFC1123, timeUtcStr); err == nil {
-			t = tym
-			//fmt.Println(t)
-		} else if tym, err := time.Parse(time.UnixDate, timeUtcStr); err == nil {
-			t = tym
-		} else {
-			return nil, retErr
-		}
+	t, err := ParseTimeStr(timeUtcStr)
+	if err != nil {
+		return nil, err
 	}
-	//fmt.Println(t)
-	t = t.UTC()
 	//fmt.Println(t)
 	event := NewEvent(eventType, extRef, data, &t)
 	//fmt.Println(event.TimeUtc)
 	return event, nil
+}
+
+func ParseTimeStr(timeStr string) (time.Time, error) {
+	t, retErr := time.Parse(time.RFC3339Nano, timeStr)
+	//fmt.Println(t)
+	if retErr != nil {
+		if tym, err := time.Parse(time.RFC1123, timeStr); err == nil {
+			t = tym
+			//fmt.Println(t)
+		} else if tym, err := time.Parse(time.UnixDate, timeStr); err == nil {
+			t = tym
+		} else {
+			return t, retErr
+		}
+	}
+	//fmt.Println(t)
+	return t.UTC(), nil
 }

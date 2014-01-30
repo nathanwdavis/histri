@@ -154,3 +154,50 @@ func TestPostgresStorageGetById(t *testing.T) {
 			event.TimeUtc)
 	}
 }
+
+func TestPostgresStorageGetByRange(t *testing.T) {
+	db, _ := NewPostgresStorage()
+
+	//setup - start this test with a clean events table
+	_, err := db.connection().Exec(`truncate histri.events restart identity`)
+
+	event1, _ := histri.NewEventWithTimeStr(
+		"2010-01-05T10:00:00.001Z",
+		"off",
+		"abc121",
+		map[string]interface{}{
+			"a": 1,
+			"b": 2,
+		},
+	)
+	event2, _ := histri.NewEventWithTimeStr(
+		"2010-01-07T10:00:00.001Z",
+		"on",
+		"abc122",
+		map[string]interface{}{
+			"a": 1,
+			"b": 2,
+		},
+	)
+	event3, _ := histri.NewEventWithTimeStr(
+		"2010-01-09T10:00:00.001Z",
+		"on",
+		"abc123",
+		map[string]interface{}{
+			"a": 1,
+			"b": 2,
+		},
+	)
+	db.Insert(event1)
+	db.Insert(event2)
+	db.Insert(event3)
+	start, _ := histri.ParseTimeStr("2010-01-07T00:00:00.000Z")
+	end, _ := histri.ParseTimeStr("2010-01-10T00:00:00.000Z")
+	retrievedRange, err := db.ByTimeRange(start, end)
+	if err != nil {
+		t.Errorf("Could not get ByTimeRange. Error: %q", err)
+	}
+	if len(retrievedRange) != 2 {
+		t.Errorf("Expect range of 2, got %d", len(retrievedRange))
+	}
+}

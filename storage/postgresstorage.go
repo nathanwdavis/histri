@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/nathanwdavis/histri"
 	"strconv"
+	"time"
 )
 
 type PostgresStorage struct {
@@ -56,15 +57,37 @@ func (self *PostgresStorage) ById(id string) (*histri.Event, error) {
 	return instance, nil
 }
 
-func NewPostgresStorage() (Storage, error) {
+func (self *PostgresStorage) ByTimeRange(start, end time.Time) ([]histri.Event, error) {
+	cursor, err := self.conn.Query(`select * from histri.events
+									 where timeutc between $1 and $2`, start, end)
+	if err != nil {
+		return nil, err
+	}
+	events := make([]histri.Event, 0, 100)
+	var instance histri.Event
+	for cursor.Next() {
+		if err = rowToEvent(cursor, &instance); err != nil {
+			defer cursor.Close()
+			return nil, err
+		}
+		events = append(events, instance)
+	}
+	return events, nil
+}
+
+func (self *PostgresStorage) connection() *sql.DB {
+	return self.conn
+}
+
+func NewPostgresStorage() (*PostgresStorage, error) {
 	db, err := sql.Open("postgres",
 		"postgres://histri:postgres@127.0.0.1/event?sslmode=disable")
 	if err != nil {
 		return nil, err
 	}
-	return Storage(&PostgresStorage{
+	return &PostgresStorage{
 		db,
-	}), nil
+	}, nil
 }
 
 func idStrToInt(id string) (int64, error) {
